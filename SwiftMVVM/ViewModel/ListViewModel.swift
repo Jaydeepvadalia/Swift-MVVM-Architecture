@@ -36,7 +36,6 @@ final class ListViewModel: ListViewModelType, ListViewModelInputs, ListViewModel
     // MARK: - Inputs
     let fetchTrigger = PublishSubject<Void>()
     let reachedBottomTrigger = PublishSubject<Void>()
-    let search = ""
     private let page = BehaviorRelay<Int>(value: 1)
 
     // MARK: - Outputs
@@ -70,6 +69,9 @@ final class ListViewModel: ListViewModelType, ListViewModelInputs, ListViewModel
                 .flatMap { response -> Single<[User]> in
                         do {
                             let users = try response.map([User].self, atKeyPath: "items")
+                            if page == 1 && users.count == 0 {
+                                return Single.error(NSError(domain: "No user found", code: 0, userInfo: nil))
+                            }
                             return Single.just(users)
                         } catch let error {
                             return Single.error(error)
@@ -78,7 +80,10 @@ final class ListViewModel: ListViewModelType, ListViewModelInputs, ListViewModel
         }
         
         self.isLoading = searchAction.executing.startWith(false)
-        self.error = searchAction.errors.map { _ in NSError(domain: "Network Error", code: 0, userInfo: nil) }
+        
+        self.error = searchAction.errors.map { error in
+            error as NSError
+        }
         
         searchAction.elements
             .withLatestFrom(response) { ($0, $1) }

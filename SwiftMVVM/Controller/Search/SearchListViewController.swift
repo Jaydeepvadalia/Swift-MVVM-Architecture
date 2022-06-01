@@ -57,7 +57,7 @@ class SearchListViewController: UIViewController {
         viewModel.outputs.error
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] in
-                let ac = UIAlertController(title: "Error \($0)", message: nil, preferredStyle: .alert)
+                let ac = UIAlertController(title: $0.description, message: nil, preferredStyle: .alert)
                 ac.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
                 self?.present(ac, animated: true)
             })
